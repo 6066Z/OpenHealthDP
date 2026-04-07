@@ -1,0 +1,36 @@
+{
+  "outpatient": [
+    {
+      "code": "70551",
+      "procedure_id": "CPT:70551",
+      "display_name": "MRI Brain (without contrast)",
+      "category": "Imaging"
+    },
+    {
+      "code": "45378",
+      "procedure_id": "CPT:45378",
+      "display_name": "Colonoscopy",
+      "category": "GI & Endoscopy"
+    }
+  ],
+  "inpatient": [
+    {
+      "code": "871",
+      "procedure_id": "DRG:871",
+      "display_name": "Sepsis (with Major CC)",
+      "category": "Inpatient Admission"
+    },
+    {
+      "code": "470",
+      "procedure_id": "DRG:470",
+      "display_name": "Knee or Hip Replacement",
+      "category": "Surgery"
+    },
+    {
+      "code": "193",
+      "procedure_id": "DRG:193",
+      "display_name": "Pneumonia (with Major CC)",
+      "category": "Inpatient Admission"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+.env
+node_modules/
+dist/
+*.json.key
+service-account-key.json
+.DS_Store
+*.md
+!README.md

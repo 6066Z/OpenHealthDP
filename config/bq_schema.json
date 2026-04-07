@@ -1,0 +1,19 @@
+{
+  "tables": {
+    "dim_providers": {
+      "projectId": "ai4h2ma",
+      "dataset": "openhealth_ma",
+      "table": "dim_providers",
+      "columns": ["npi", "name", "address", "city", "zip", "lat", "lng", "is_org"]
+    },
+    "fact_prices": {
+      "projectId": "ai4h2ma",
+      "dataset": "openhealth_ma",
+      "table": "fact_prices",
+      "columns": ["npi", "procedure_id", "avg_charge", "avg_allowed", "source_year"]
+    }
+  },
+  "queries": {
+    "transparency_query": "SELECT p.name, p.address, p.city, p.zip, f.avg_charge, f.avg_allowed, f.procedure_id FROM `ai4h2ma.openhealth_ma.dim_providers` AS p JOIN `ai4h2ma.openhealth_ma.fact_prices` AS f ON p.npi = f.npi WHERE f.procedure_id = @procedureId"
+  }
+}
