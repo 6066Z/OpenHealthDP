@@ -3,6 +3,8 @@ node_modules/
 dist/
 *.json.key
 service-account-key.json
+gcp-key.json
+package-lock.json
 .DS_Store
 *.md
 !README.md
