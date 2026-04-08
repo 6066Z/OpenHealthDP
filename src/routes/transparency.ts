@@ -1,9 +1,19 @@
 import { Router } from 'express';
 import { BigQuery } from '@google-cloud/bigquery';
 
+import fs from 'fs';
+
 const router = Router();
 
-const credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON || '{}');
+let credentials;
+if (process.env.GCP_SERVICE_ACCOUNT_PATH && fs.existsSync(process.env.GCP_SERVICE_ACCOUNT_PATH)) {
+  credentials = JSON.parse(fs.readFileSync(process.env.GCP_SERVICE_ACCOUNT_PATH, 'utf8'));
+  console.log('Credentials loaded from file:', process.env.GCP_SERVICE_ACCOUNT_PATH);
+} else {
+  credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON || '{}');
+  console.log('Credentials loaded from ENV, keys:', Object.keys(credentials));
+}
+
 const bigquery = new BigQuery({
   projectId: process.env.GCP_PROJECT_ID || 'ai4h2ma',
   credentials,
