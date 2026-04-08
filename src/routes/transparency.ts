@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
     return res.status(400).json({ error: 'Missing procedureId' });
   }
 
-  let query = `SELECT p.name, p.address, p.city, p.zip, f.avg_charge, f.avg_allowed, f.procedure_id
+  let query = `SELECT p.name, p.address, p.city, p.zip, f.avg_charge, f.avg_allowed, f.procedure_id, f.source_year
     FROM \`ai4h2ma.openhealth_ma.dim_providers\` AS p
     JOIN \`ai4h2ma.openhealth_ma.fact_prices\` AS f ON p.npi = f.npi
     WHERE f.procedure_id = @procedureId`;
