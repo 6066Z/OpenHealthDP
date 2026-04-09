@@ -5,6 +5,8 @@ dist/
 service-account-key.json
 gcp-key.json
 package-lock.json
+.gemini/
+GEMINI.md
 .DS_Store
 *.md
 !README.md
