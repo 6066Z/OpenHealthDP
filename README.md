@@ -24,7 +24,7 @@ By using this API or the associated datasets, you agree that the information wil
 
 ---
 
-## 🚀 Project Scope: OpenHealth MVP
+## 🚀 Project Scope: OpenHealthDP MVP
 
 This project provides a cleaned and standardized API for transparency data sourced directly from **official CMS (Centers for Medicare & Medicaid Services) public records.**
 
@@ -36,10 +36,18 @@ This project provides a cleaned and standardized API for transparency data sourc
   - MRI Brain (without contrast)
   - Colonoscopy
   - Sepsis (with Major CC)
-  - Knee or Hip Replacement
+  - Joint Replacement
   - Pneumonia (with Major CC)
 
-**The Roadmap:** OpenHealth is an evolving project. We are continuously expanding to include more procedures, broader geographic regions, and additional official public data sources as they become available.
+---
+
+## 🗺 Future Roadmap & Evolution
+
+As AI4H2 grows, OpenHealthDP will evolve through the following phases:
+
+1.  **Geographic Expansion:** Adding datasets for additional states (e.g., New York, California).
+2.  **Procedure Depth:** Expanding the data catalog to include a wider range of CPT/DRG codes.
+3.  **Data Source Diversification:** Integrating additional official public health data sources as they become available.
 
 ---
 
