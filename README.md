@@ -83,3 +83,5 @@ Open `example_analysis.ipynb` to see how to programmatically query the API and p
 
 ---
 © 2026 AI4H2. A non-profit initiative for a more equitable healthcare future.
+
+🛠 Built with the assistance of [Gemini CLI](https://github.com/google-gemini/gemini-cli).
