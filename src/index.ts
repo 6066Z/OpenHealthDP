@@ -6,6 +6,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import transparencyRouter from './routes/transparency';
+import explorerV2Router from './routes/explorer_v2';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -42,8 +43,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Transparency Routes
+// Transparency Routes (Deprecated)
 app.use('/api/v1/transparency', transparencyRouter);
+
+// Explorer Routes (v2)
+app.use('/api/v2/explorer', explorerV2Router);
 
 app.listen(PORT, () => {
   console.log(`OpenHealth Public API running on http://localhost:${PORT}`);

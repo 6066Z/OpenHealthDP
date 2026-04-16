@@ -1,19 +1,20 @@
 {
   "tables": {
-    "dim_providers": {
+    "v_outpatient_explorer": {
       "projectId": "ai4h2ma",
-      "dataset": "openhealth_ma",
-      "table": "dim_providers",
-      "columns": ["npi", "name", "address", "city", "zip", "lat", "lng", "is_org"]
+      "dataset": "openhealth_public",
+      "table": "v_outpatient_explorer",
+      "columns": ["npi", "bundle_id", "total_cost", "component_count", "source_year", "name", "address", "city", "state", "zip", "overall_rating", "hospital_type"]
     },
-    "fact_prices": {
+    "v_inpatient_explorer": {
       "projectId": "ai4h2ma",
-      "dataset": "openhealth_ma",
-      "table": "fact_prices",
-      "columns": ["npi", "procedure_id", "avg_charge", "avg_allowed", "source_year"]
+      "dataset": "openhealth_public",
+      "table": "v_inpatient_explorer",
+      "columns": ["npi", "bundle_id", "total_cost", "component_count", "source_year", "name", "address", "city", "state", "zip", "overall_rating", "hospital_type"]
     }
   },
   "queries": {
-    "transparency_query": "SELECT p.name, p.address, p.city, p.zip, f.avg_charge, f.avg_allowed, f.procedure_id FROM `ai4h2ma.openhealth_ma.dim_providers` AS p JOIN `ai4h2ma.openhealth_ma.fact_prices` AS f ON p.npi = f.npi WHERE f.procedure_id = @procedureId"
+    "outpatient_query": "SELECT * FROM `ai4h2ma.openhealth_public.v_outpatient_explorer` WHERE bundle_id = @bundleId",
+    "inpatient_query": "SELECT * FROM `ai4h2ma.openhealth_public.v_inpatient_explorer` WHERE bundle_id = @bundleId"
   }
 }
