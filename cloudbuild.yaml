@@ -1,5 +1,5 @@
 steps:
-  # 1. Build the Docker image for Artifact Registry
+  # 1. Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-east1-docker.pkg.dev/$PROJECT_ID/openhealth-repo/openhealth-dp:$TAG_NAME', '.']
 
@@ -25,9 +25,3 @@ steps:
       - 'NODE_ENV=production,GCP_PROJECT_ID=$PROJECT_ID'
       - '--update-secrets'
       - 'OPENHEALTH_BETA_API_KEY=OPENHEALTH_BETA_API_KEY:latest,BQ_MAX_BYTES_BILLED=BQ_MAX_BYTES_BILLED:latest'
-
-images:
-  - 'us-east1-docker.pkg.dev/$PROJECT_ID/openhealth-repo/openhealth-dp:$TAG_NAME'
-
-options:
-  logging: CLOUD_LOGGING_ONLY
