@@ -30,4 +30,4 @@ images:
   - 'us-east1-docker.pkg.dev/$PROJECT_ID/openhealth-repo/openhealth-dp:$TAG_NAME'
 
 options:
-  logging: CLOUD_LOGGING
+  logging: CLOUD_LOGGING_ONLY
