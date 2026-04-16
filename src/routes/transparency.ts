@@ -2,22 +2,37 @@ import { Router } from 'express';
 import { BigQuery } from '@google-cloud/bigquery';
 import crypto from 'crypto';
 import fs from 'fs';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
-let credentials;
-if (process.env.GCP_SERVICE_ACCOUNT_PATH && fs.existsSync(process.env.GCP_SERVICE_ACCOUNT_PATH)) {
-  credentials = JSON.parse(fs.readFileSync(process.env.GCP_SERVICE_ACCOUNT_PATH, 'utf8'));
-  console.log('Credentials loaded from file:', process.env.GCP_SERVICE_ACCOUNT_PATH);
-} else {
-  credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON || '{}');
-  console.log('Credentials loaded from ENV, keys:', Object.keys(credentials));
-}
+/**
+ * BigQuery Client Initialization
+ * Support Application Default Credentials (ADC) for Cloud Run
+ */
+const getBigQueryClient = () => {
+  const options: any = {
+    projectId: process.env.GCP_PROJECT_ID || 'ai4h2ma',
+    location: 'US',
+  };
 
-const bigquery = new BigQuery({
-  projectId: process.env.GCP_PROJECT_ID || 'ai4h2ma',
-  credentials,
-});
+  if (process.env.GCP_SERVICE_ACCOUNT_PATH && fs.existsSync(process.env.GCP_SERVICE_ACCOUNT_PATH)) {
+    options.keyFilename = process.env.GCP_SERVICE_ACCOUNT_PATH;
+  } else if (process.env.GCP_SERVICE_ACCOUNT_JSON) {
+    try {
+      options.credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON);
+    } catch (e) {
+      logger.warn('Failed to parse GCP_SERVICE_ACCOUNT_JSON, falling back to ADC');
+    }
+  }
+
+  return new BigQuery(options);
+};
+
+const bigquery = getBigQueryClient();
+
+// Safety: Safeguard against runaway query costs (Default to 1GB per query)
+const MAX_BYTES_BILLED = parseInt(process.env.BQ_MAX_BYTES_BILLED || '1000000000');
 
 router.get('/', async (req, res) => {
   const apiKey = req.headers['x-api-key'];
@@ -47,9 +62,10 @@ router.get('/', async (req, res) => {
     return res.status(400).json({ error: 'Invalid zip format (must be 5 digits)' });
   }
 
+  const project = process.env.GCP_PROJECT_ID || 'ai4h2ma';
   let query = `SELECT p.name, p.address, p.city, p.zip, f.avg_charge, f.avg_allowed, f.procedure_id, f.source_year
-    FROM \`ai4h2ma.openhealth_ma.dim_providers\` AS p
-    JOIN \`ai4h2ma.openhealth_ma.fact_prices\` AS f ON p.npi = f.npi
+    FROM \`${project}.openhealth_ma.dim_providers\` AS p
+    JOIN \`${project}.openhealth_ma.fact_prices\` AS f ON p.npi = f.npi
     WHERE f.procedure_id = @procedureId`;
 
   const params: any = { procedureId };
@@ -64,7 +80,12 @@ router.get('/', async (req, res) => {
   query += ` ORDER BY f.avg_charge ASC LIMIT 500`;
 
   try {
-    const [rows] = await bigquery.query({ query, params, location: 'US' });
+    const [rows] = await bigquery.query({ 
+      query, 
+      params, 
+      location: 'US',
+      maximumBytesBilled: MAX_BYTES_BILLED.toString()
+    });
     
     // Add deprecation headers
     res.set('Deprecation', 'true');
@@ -74,7 +95,7 @@ router.get('/', async (req, res) => {
     res.json({ count: rows.length, procedure: procedureId, data: rows });
   } catch (error: any) {
     // 3. Prevent Information Leakage - log internally, return generic error
-    console.error('BigQuery execution error:', error.message, { query, params });
+    logger.error('BigQuery execution error (v1)', { error: error.message, query, params });
     res.status(500).json({ error: 'Internal server error: Unable to process data request.' });
   }
 });

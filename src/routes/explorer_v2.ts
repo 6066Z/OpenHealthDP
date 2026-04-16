@@ -2,20 +2,38 @@ import { Router } from 'express';
 import { BigQuery } from '@google-cloud/bigquery';
 import crypto from 'crypto';
 import fs from 'fs';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
-let credentials;
-if (process.env.GCP_SERVICE_ACCOUNT_PATH && fs.existsSync(process.env.GCP_SERVICE_ACCOUNT_PATH)) {
-  credentials = JSON.parse(fs.readFileSync(process.env.GCP_SERVICE_ACCOUNT_PATH, 'utf8'));
-} else {
-  credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON || '{}');
-}
+/**
+ * BigQuery Client Initialization
+ * Support Application Default Credentials (ADC) for Cloud Run
+ */
+const getBigQueryClient = () => {
+  const options: any = {
+    projectId: process.env.GCP_PROJECT_ID || 'ai4h2ma',
+    location: 'US',
+  };
 
-const bigquery = new BigQuery({
-  projectId: process.env.GCP_PROJECT_ID || 'ai4h2ma',
-  credentials,
-});
+  // Support JSON credentials from env if provided; otherwise fallback to ADC
+  if (process.env.GCP_SERVICE_ACCOUNT_PATH && fs.existsSync(process.env.GCP_SERVICE_ACCOUNT_PATH)) {
+    options.keyFilename = process.env.GCP_SERVICE_ACCOUNT_PATH;
+  } else if (process.env.GCP_SERVICE_ACCOUNT_JSON) {
+    try {
+      options.credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON);
+    } catch (e) {
+      logger.warn('Failed to parse GCP_SERVICE_ACCOUNT_JSON, falling back to ADC');
+    }
+  }
+
+  return new BigQuery(options);
+};
+
+const bigquery = getBigQueryClient();
+
+// Safety: Safeguard against runaway query costs (Default to 1GB per query)
+const MAX_BYTES_BILLED = parseInt(process.env.BQ_MAX_BYTES_BILLED || '1000000000');
 
 const verifyApiKey = (req: any, res: any, next: any) => {
   const apiKey = req.headers['x-api-key'];
@@ -54,8 +72,9 @@ const validateInput = (req: any, res: any, next: any) => {
 
 const handleQuery = async (req: any, res: any, table: string) => {
   const { bundleId, city, zip, state } = req.query;
+  const project = process.env.GCP_PROJECT_ID || 'ai4h2ma';
 
-  let query = `SELECT * FROM \`ai4h2ma.openhealth_public.${table}\` WHERE bundle_id = @bundleId`;
+  let query = `SELECT * FROM \`${project}.openhealth_public.${table}\` WHERE bundle_id = @bundleId`;
   const params: any = { bundleId };
 
   if (state) {
@@ -74,10 +93,16 @@ const handleQuery = async (req: any, res: any, table: string) => {
   query += ` ORDER BY total_cost ASC LIMIT 500`;
 
   try {
-    const [rows] = await bigquery.query({ query, params, location: 'US' });
+    const [rows] = await bigquery.query({ 
+      query, 
+      params, 
+      location: 'US',
+      maximumBytesBilled: MAX_BYTES_BILLED.toString()
+    });
     res.json({ count: rows.length, bundle_id: bundleId, data: rows });
   } catch (error: any) {
-    console.error('BigQuery execution error (v2):', error.message, { query, params });
+    // 3. Prevent Information Leakage - log internally, return generic error
+    logger.error('BigQuery execution error (v2)', { error: error.message, query, params });
     res.status(500).json({ error: 'Internal server error: Unable to process data request.' });
   }
 };

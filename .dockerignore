@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.git
+.gitignore
+.gemini
+*.ipynb
+*.py
+CHANGELOG.md
+README.md
+PUBLIC_API_UPGRADE_GUIDE.md
+gcp-key.json
+Dockerfile
+cloudbuild.yaml
