@@ -1,0 +1,33 @@
+steps:
+  # 1. Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/openhealth-dp:$TAG_NAME', '.']
+
+  # 2. Push the image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/openhealth-dp:$TAG_NAME']
+
+  # 3. Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'openhealth-dp'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/openhealth-dp:$TAG_NAME'
+      - '--region'
+      - 'us-east1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,GCP_PROJECT_ID=$PROJECT_ID'
+      - '--update-secrets'
+      - 'OPENHEALTH_BETA_API_KEY=OPENHEALTH_BETA_API_KEY:latest,BQ_MAX_BYTES_BILLED=BQ_MAX_BYTES_BILLED:latest'
+
+images:
+  - 'gcr.io/$PROJECT_ID/openhealth-dp:$TAG_NAME'
+
+options:
+  logging: CLOUD_LOGGING

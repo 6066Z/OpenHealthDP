@@ -16,6 +16,7 @@ const getBigQueryClient = () => {
     location: 'US',
   };
 
+  // Support JSON credentials from env if provided; otherwise fallback to ADC
   if (process.env.GCP_SERVICE_ACCOUNT_PATH && fs.existsSync(process.env.GCP_SERVICE_ACCOUNT_PATH)) {
     options.keyFilename = process.env.GCP_SERVICE_ACCOUNT_PATH;
   } else if (process.env.GCP_SERVICE_ACCOUNT_JSON) {
@@ -34,11 +35,8 @@ const bigquery = getBigQueryClient();
 // Safety: Safeguard against runaway query costs (Default to 1GB per query)
 const MAX_BYTES_BILLED = parseInt(process.env.BQ_MAX_BYTES_BILLED || '1000000000');
 
-router.get('/', async (req, res) => {
+const verifyApiKey = (req: any, res: any, next: any) => {
   const apiKey = req.headers['x-api-key'];
-  const { procedureId, city, zip } = req.query;
-
-  // 1. Timing-safe comparison of API Key
   const providedKey = (apiKey as string) || '';
   const expectedKey = process.env.OPENHEALTH_BETA_API_KEY || 'AI4H2-PUBLIC-2023-BETA';
   
@@ -48,10 +46,14 @@ router.get('/', async (req, res) => {
   if (!crypto.timingSafeEqual(hmac1, hmac2)) {
     return res.status(401).json({ error: 'Unauthorized', message: 'Valid x-api-key header required.' });
   }
+  next();
+};
 
-  // 2. Strict Input Validation
-  if (!procedureId || typeof procedureId !== 'string' || procedureId.length > 64) {
-    return res.status(400).json({ error: 'Invalid or missing procedureId (max 64 characters)' });
+const validateInput = (req: any, res: any, next: any) => {
+  const { bundleId, city, zip, state } = req.query;
+
+  if (!bundleId || typeof bundleId !== 'string' || bundleId.length > 64) {
+    return res.status(400).json({ error: 'Invalid or missing bundleId (max 64 characters)' });
   }
 
   if (city && (typeof city !== 'string' || city.length > 128)) {
@@ -62,22 +64,33 @@ router.get('/', async (req, res) => {
     return res.status(400).json({ error: 'Invalid zip format (must be 5 digits)' });
   }
 
-  const project = process.env.GCP_PROJECT_ID || 'ai4h2ma';
-  let query = `SELECT p.name, p.address, p.city, p.zip, f.avg_charge, f.avg_allowed, f.procedure_id, f.source_year
-    FROM \`${project}.openhealth_ma.dim_providers\` AS p
-    JOIN \`${project}.openhealth_ma.fact_prices\` AS f ON p.npi = f.npi
-    WHERE f.procedure_id = @procedureId`;
+  if (state && (typeof state !== 'string' || !/^[a-zA-Z]{2}$/.test(state))) {
+    return res.status(400).json({ error: 'Invalid state format (must be 2 letters)' });
+  }
+  next();
+};
 
-  const params: any = { procedureId };
-  if (city) { 
-    query += ` AND UPPER(p.city) = @city`; 
-    params.city = (city as string).toUpperCase(); 
+const handleQuery = async (req: any, res: any, table: string) => {
+  const { bundleId, city, zip, state } = req.query;
+  const project = process.env.GCP_PROJECT_ID || 'ai4h2ma';
+
+  let query = `SELECT * FROM \`${project}.openhealth_public.${table}\` WHERE bundle_id = @bundleId`;
+  const params: any = { bundleId };
+
+  if (state) {
+    query += ` AND UPPER(state) = @state`;
+    params.state = (state as string).toUpperCase();
   }
-  if (zip) { 
-    query += ` AND p.zip = @zip`; 
-    params.zip = zip; 
+  if (city) {
+    query += ` AND UPPER(city) = @city`;
+    params.city = (city as string).toUpperCase();
   }
-  query += ` ORDER BY f.avg_charge ASC LIMIT 500`;
+  if (zip) {
+    query += ` AND zip = @zip`;
+    params.zip = zip;
+  }
+
+  query += ` ORDER BY total_cost ASC LIMIT 500`;
 
   try {
     const [rows] = await bigquery.query({ 
@@ -86,18 +99,20 @@ router.get('/', async (req, res) => {
       location: 'US',
       maximumBytesBilled: MAX_BYTES_BILLED.toString()
     });
-    
-    // Add deprecation headers
-    res.set('Deprecation', 'true');
-    res.set('Warning', '299 - "This API version (v1) is deprecated. Please migrate to /api/v2/explorer."');
-    res.set('Link', '</api/v2/explorer/outpatient>; rel="alternate"');
-
-    res.json({ count: rows.length, procedure: procedureId, data: rows });
+    res.json({ count: rows.length, bundle_id: bundleId, data: rows });
   } catch (error: any) {
     // 3. Prevent Information Leakage - log internally, return generic error
-    logger.error('BigQuery execution error (v1)', { error: error.message, query, params });
+    logger.error('BigQuery execution error (v2)', { error: error.message, query, params });
     res.status(500).json({ error: 'Internal server error: Unable to process data request.' });
   }
+};
+
+router.get('/outpatient', verifyApiKey, validateInput, (req, res) => {
+  handleQuery(req, res, 'v_outpatient_explorer');
+});
+
+router.get('/inpatient', verifyApiKey, validateInput, (req, res) => {
+  handleQuery(req, res, 'v_inpatient_explorer');
 });
 
 export default router;

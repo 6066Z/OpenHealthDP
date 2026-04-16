@@ -1,34 +1,29 @@
 {
   "outpatient": [
     {
-      "code": "70551",
-      "procedure_id": "CPT:70551",
+      "bundle_id": "MRI_BRAIN_NO_CONTRAST",
       "display_name": "MRI Brain (without contrast)",
       "category": "Imaging"
     },
     {
-      "code": "45378",
-      "procedure_id": "CPT:45378",
+      "bundle_id": "COLONOSCOPY",
       "display_name": "Colonoscopy",
       "category": "GI & Endoscopy"
     }
   ],
   "inpatient": [
     {
-      "code": "871",
-      "procedure_id": "DRG:871",
+      "bundle_id": "SEPSIS_ADMISSION",
       "display_name": "Sepsis (with Major CC)",
       "category": "Inpatient Admission"
     },
     {
-      "code": "470",
-      "procedure_id": "DRG:470",
+      "bundle_id": "JOINT_REPLACEMENT",
       "display_name": "Joint Replacement",
       "category": "Surgery"
     },
     {
-      "code": "193",
-      "procedure_id": "DRG:193",
+      "bundle_id": "PNEUMONIA_ADMISSION",
       "display_name": "Pneumonia (with Major CC)",
       "category": "Inpatient Admission"
     }
