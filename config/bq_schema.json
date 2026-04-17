@@ -4,13 +4,43 @@
       "projectId": "ai4h2ma",
       "dataset": "openhealth_public",
       "table": "v_outpatient_explorer",
-      "columns": ["npi", "bundle_id", "total_cost", "component_count", "source_year", "name", "address", "city", "state", "zip", "overall_rating", "hospital_type"]
+      "columns": [
+        "npi",
+        "bundle_id",
+        "total_cost",
+        "total_charge",
+        "component_count",
+        "source_year",
+        "name",
+        "address",
+        "city",
+        "state",
+        "zip",
+        "overall_rating",
+        "hospital_type",
+        "is_org"
+      ]
     },
     "v_inpatient_explorer": {
       "projectId": "ai4h2ma",
       "dataset": "openhealth_public",
       "table": "v_inpatient_explorer",
-      "columns": ["npi", "bundle_id", "total_cost", "component_count", "source_year", "name", "address", "city", "state", "zip", "overall_rating", "hospital_type"]
+      "columns": [
+        "npi",
+        "bundle_id",
+        "total_cost",
+        "total_charge",
+        "component_count",
+        "source_year",
+        "name",
+        "address",
+        "city",
+        "state",
+        "zip",
+        "overall_rating",
+        "hospital_type",
+        "is_org"
+      ]
     }
   },
   "queries": {
