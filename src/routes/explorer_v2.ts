@@ -50,10 +50,14 @@ const verifyApiKey = (req: any, res: any, next: any) => {
 };
 
 const validateInput = (req: any, res: any, next: any) => {
-  const { bundleId, city, zip, state } = req.query;
+  const { bundleId, city, zip, state, year } = req.query;
 
   if (!bundleId || typeof bundleId !== 'string' || bundleId.length > 64) {
     return res.status(400).json({ error: 'Invalid or missing bundleId (max 64 characters)' });
+  }
+
+  if (year && (typeof year !== 'string' || !/^\d{4}$/.test(year))) {
+    return res.status(400).json({ error: 'Invalid year format (must be 4 digits)' });
   }
 
   if (city && (typeof city !== 'string' || city.length > 128)) {
@@ -71,12 +75,16 @@ const validateInput = (req: any, res: any, next: any) => {
 };
 
 const handleQuery = async (req: any, res: any, table: string) => {
-  const { bundleId, city, zip, state } = req.query;
+  const { bundleId, city, zip, state, year } = req.query;
   const project = process.env.GCP_PROJECT_ID || 'ai4h2ma';
 
   let query = `SELECT * FROM \`${project}.openhealth_public.${table}\` WHERE bundle_id = @bundleId`;
   const params: any = { bundleId };
 
+  if (year) {
+    query += ` AND source_year = @year`;
+    params.year = parseInt(year as string);
+  }
   if (state) {
     query += ` AND UPPER(state) = @state`;
     params.state = (state as string).toUpperCase();
