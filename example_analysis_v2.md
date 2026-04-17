@@ -1,12 +1,12 @@
 # OpenHealth: Professional Clinical Trend Analysis (2018–2023)
 
-This notebook demonstrates the **Professional Protocol** for analyzing healthcare price transparency data, adhering to the protocols in `DATA_SCIENCE_GUIDE.md`.
+This notebook demonstrates the **Professional Protocol** for analyzing healthcare price transparency data, adhering to the updated `DATA_SCIENCE_GUIDE.md`.
 
 ### 🛡️ Analysis Protocols Implemented:
-1.  **Identity Bridge (Protocol 1):** Uses **Physical Site Normalization** (Address + City + Zip) to track clinical locations across the 2021 NPI billing shift.
-2.  **Clinical Verification (Protocol 3):** Accounts for "Global Claims" using price-weighted rescue logic (Verified if `component_count >= 2` OR `total_cost > $150`).
-3.  **2021 Pivot Calibration (Protocol 4):** Segmented eras distinguish between Legacy (2018–2020) and Modern (2021–2023) reporting standards.
-4.  **Metadata-Agnostic Trends:** Includes pricing from unresolved provider records to ensure longitudinal consistency.
+1.  **Identity Bridge (Protocol 1):** Uses **Physical Site Normalization** (Address + City + Zip) to track consistent clinical locations across the 2021 NPI billing shift.
+2.  **Regional Price Index (Protocol 2):** Aggregates data by **3-Digit Zip Code** to provide a stable market baseline that is immune to individual provider churn.
+3.  **Clinical Verification (Protocol 3):** Employs "Price-Weighted Rescue" logic (Verified if `component_count >= 2` OR `total_cost > $150`) to capture Global Claims in the legacy era.
+4.  **Metadata-Agnostic Trends (Protocol 4):** Includes records even when specific provider names are unresolved in legacy registries, ensuring longitudinal consistency.
 
 
 ```python
@@ -47,8 +47,10 @@ def fetch_and_sanitize():
     full_df = pd.concat(all_data, ignore_index=True)
     
     # PROTOCOL 1: IDENTITY BRIDGE (Site-Level Normalization)
-    # Bridge NPI shifts by grouping by Physical Location metadata
     full_df['site_id'] = full_df['address'].astype(str) + " " + full_df['zip'].astype(str)
+    
+    # PROTOCOL 2: REGIONAL NORMALIZATION (Zip-3)
+    full_df['zip3'] = full_df['zip'].astype(str).str.zfill(5).str[:3]
     
     # PROTOCOL 3: CLINICAL VERIFICATION (Price-Weighted Rescue)
     full_df['is_verified'] = False
@@ -66,19 +68,19 @@ def fetch_and_sanitize():
 df = fetch_and_sanitize()
 ```
 
-    /var/folders/z6/fjw1r6dj3j33f7rt_pgbxmh40000gn/T/ipykernel_13461/2660329498.py:35: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+    /var/folders/z6/fjw1r6dj3j33f7rt_pgbxmh40000gn/T/ipykernel_14725/2337985549.py:35: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
       full_df = pd.concat(all_data, ignore_index=True)
 
 
-## 1. Longitudinal Price Index (Site-Normalized)
-We track the **Median Price Index** grouped by physical clinical location (`site_id`). This protocol bridges the structural shift where hospital systems changed their billing IDs (NPIs) between 2018 and 2023.
+## 1. Site-Normalized Price Trend (Protocol 1)
+We track the **Median Site Cost**, which bridges NPI shifts by grouping by physical clinical address. This ensures we are measuring the same facilities over the 5-year study.
 
 
 ```python
 if not df.empty:
-    # Protocol 1: Aggregating by Site ID to track consistent physical locations
-    site_trend = df.groupby(['procedure_name', 'source_year', 'site_id'])['total_cost'].median().reset_index()
-    market_trend = site_trend.groupby(['procedure_name', 'source_year'])['total_cost'].median().reset_index()
+    # Aggregating by Site ID then finding market median
+    site_medians = df.groupby(['procedure_name', 'source_year', 'site_id'])['total_cost'].median().reset_index()
+    market_trend = site_medians.groupby(['procedure_name', 'source_year'])['total_cost'].median().reset_index()
     
     plt.figure(figsize=(12, 6))
     sns.lineplot(data=market_trend, x='source_year', y='total_cost', hue='procedure_name', marker='o', linewidth=3)
@@ -97,8 +99,33 @@ if not df.empty:
     
 
 
-## 2. Era Segmentation: Metadata-Agnostic Market Volatility
-Federal transparency rules in 2021 flooded the market with high-quality data. By including records even when names are unresolved (NULL), we maintain a statistically robust baseline from the legacy era (2018–2020).
+## 2. Regional Price Index: Zip-3 Aggregation (Protocol 2)
+Aggregating by the first 3 digits of the Zip code creates a stable market baseline. This view is immune to individual provider churn and reflects regional pricing shifts.
+
+
+```python
+if not df.empty:
+    # Protocol 2: Regional aggregation by Zip-3
+    zip_trend = df.groupby(['source_year', 'zip3'])['total_cost'].median().reset_index()
+    
+    plt.figure(figsize=(12, 6))
+    sns.lineplot(data=zip_trend, x='source_year', y='total_cost', hue='zip3', marker='s', alpha=0.7)
+    plt.title("Regional Price Index (Zip-3): Geographic Market Baseline", fontsize=14)
+    plt.ylabel("Median Regional Cost ($)")
+    plt.xlabel("Year")
+    plt.grid(True, alpha=0.3)
+    plt.legend(title='Zip-3 Region', bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.show()
+```
+
+
+    
+![png](example_analysis_v2_files/example_analysis_v2_5_0.png)
+    
+
+
+## 3. Market Fragmentation Index (Protocol 4)
+Using the **Quartile Coefficient of Dispersion (QCD)**, we measure volatility. By including unresolved (NULL name) records from legacy registries, we maintain statistical weight in the 2018–2020 baseline.
 
 
 ```python
@@ -114,9 +141,9 @@ if not df.empty:
     sns.lineplot(data=disp_df, x='source_year', y='qcd', hue='procedure_name', marker='s', linewidth=2)
     plt.axvspan(2018, 2020.5, color='gray', alpha=0.1, label='Legacy Era')
     plt.axvspan(2020.5, 2023, color='blue', alpha=0.05, label='Modern Era')
-    plt.title("Market Fragmentation Index (QCD) & Structural Break Calibration", fontsize=14)
+    plt.title("Market Fragmentation (QCD) & Era Segmentation", fontsize=14)
     plt.ylabel("Dispersion Index (Lower is better)")
-    plt.xlabel("Source Year")
+    plt.xlabel("Year")
     plt.grid(True, alpha=0.3)
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.show()
@@ -124,11 +151,11 @@ if not df.empty:
 
 
     
-![png](example_analysis_v2_files/example_analysis_v2_5_0.png)
+![png](example_analysis_v2_files/example_analysis_v2_7_0.png)
     
 
 
-### 🏥 Professional Clinical Summary (Protocol 1–4)
-*   **Identity Fidelity:** *This study tracks clinical locations (Site-Level Normalization), resolving the artificial inflation caused by NPI identity shifts.*
-*   **Metadata-Agnostic:** *By using pricing data even when provider names are unresolved in legacy registries, we restored the longitudinal sample size, ensuring 2018/19 are no longer 'thin' data points.*
-*   **Clinical Logic:** *The 2021 Pivot marks the transition from fragmented legacy billing to unified, institutional-grade price transparency reporting.*
+### 🏥 Expert Clinical Interpretation
+*   **Address Fidelity:** *By normalizing at the physical site level, we bridged the 2021 NPI churn, preventing hospital billing shifts from distorting the price index.*
+*   **Regional Stability:** *The Zip-3 aggregation confirms that while individual provider prices vary, regional baselines have remained stable across the transparency pivot.*
+*   **Global Billing Rescue:** *The inclusion of high-cost single-row claims ($150+) restored the 2018-2019 baseline, enabling a complete longitudinal trend.*
