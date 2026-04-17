@@ -1,1 +1,3 @@
 *.ipynb filter=nbstripout
+example_analysis.ipynb -filter
+example_analysis_v2.ipynb -filter
