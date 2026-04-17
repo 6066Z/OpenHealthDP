@@ -2,6 +2,17 @@
 
 OpenHealth is a public API service providing cleaned, structured access to healthcare price transparency data. It is a core product of **AI4H2**, designed to bridge the gap between complex raw government datasets and researchers, educators, and patients.
 
+## 🚀 NEW: v2.3.0 "Total Coverage" Release
+
+We have upgraded the API to support logically separated clinical environments and a unified pricing model.
+
+### Live Production Endpoints
+*   **Health Check**: `https://openhealth-dp-815397559759.us-east1.run.app/health`
+*   **v2 Outpatient Explorer**: `https://openhealth-dp-815397559759.us-east1.run.app/api/v2/explorer/outpatient`
+*   **v2 Inpatient Explorer**: `https://openhealth-dp-815397559759.us-east1.run.app/api/v2/explorer/inpatient`
+
+---
+
 ## 🌟 Our Mission: AI4H2
 
 **AI4H2 is a non-profit organization dedicated to ensuring that the life-changing potential of advanced AI in healthcare belongs to everyone, not just the privileged few.**
@@ -10,8 +21,6 @@ We build open, ethical AI solutions that:
 - Close gaps in diagnosis, treatment, and care.
 - Deepen patient understanding of their own health.
 - Remove the barriers that keep millions from accessing the services they need.
-
-We believe that where you were born, how much you earn, or what language you speak should **never** determine the quality of health you receive.
 
 ---
 
@@ -24,52 +33,38 @@ By using this API or the associated datasets, you agree that the information wil
 
 ---
 
-## 🚀 Project Scope: OpenHealthDP MVP
+## 🚀 Project Scope: OpenHealthDP v2.3.0
 
 This project provides a cleaned and standardized API for transparency data sourced directly from **official CMS (Centers for Medicare & Medicaid Services) public records.**
 
-### Current Coverage (MVP):
-- **Geography:** Massachusetts (MA) Only.
+### Current Coverage:
+- **Geography:** Massachusetts (MA) + Multi-state support via `?state=XX`.
 - **Data Range:** 2018 – 2023.
-- **Source:** CMS Public Data (Medicare/Medicaid rates).
-- **Procedures Covered:**
-  - MRI Brain (without contrast)
-  - Colonoscopy
-  - Sepsis (with Major CC)
-  - Joint Replacement
-  - Pneumonia (with Major CC)
-
----
-
-## 🗺 Future Roadmap & Evolution
-
-As AI4H2 grows, OpenHealthDP will evolve through the following phases:
-
-1.  **Geographic Expansion:** Adding datasets for additional states (e.g., New York, California).
-2.  **Procedure Depth:** Expanding the data catalog to include a wider range of CPT/DRG codes.
-3.  **Data Source Diversification:** Integrating additional official public health data sources as they become available.
+- **Cost Metric:** Unified `total_cost` (clinical aggregate).
+- **Procedures Covered (Clinical Bundles):**
+  - MRI_BRAIN_NO_CONTRAST
+  - COLONOSCOPY
+  - SEPSIS_ADMISSION
+  - JOINT_REPLACEMENT
+  - PNEUMONIA_ADMISSION
 
 ---
 
 ## 🛠 Project Structure
 
-- **`/src`:** A TypeScript/Express backend that interfaces with Google BigQuery to serve cleaned transparency data.
-- **`example_analysis.ipynb`:** A Jupyter Notebook providing professional-grade analysis of market irrationality, price multipliers, and temporal trends in MA.
-- **`/config`:** JSON definitions for data schemas and medical procedure mappings.
+- **`/src`**: Node.js/TypeScript backend (Hardened for Production).
+- **`example_analysis_v2.ipynb`**: Updated Jupyter Notebook for v2.3.0 analysis.
+- **`example_analysis_v2.md`**: Markdown mirror of the analysis for quick viewing.
+- **`cloudbuild.yaml` / `Dockerfile`**: Production CI/CD infrastructure for GCP Cloud Run.
 
 ---
 
-## 🚦 Getting Started
-
-### Prerequisites
-- Node.js (v18+)
-- Python 3 (for analysis)
-- Google Cloud credentials for BigQuery access.
+## 🚦 Getting Started (Local Development)
 
 ### 1. Setup
 ```bash
 npm install
-cp .env.example .env  # Add your GCP credentials here
+cp .env.example .env  # Add your GCP_PROJECT_ID and GCP credentials
 ```
 
 ### 2. Run API Server
@@ -79,7 +74,7 @@ npm run dev
 The server runs on `http://localhost:3001`.
 
 ### 3. Explore the Data
-Open `example_analysis.ipynb` to see how to programmatically query the API and perform health equity analysis. You can also view pre-rendered plots directly on GitHub.
+Open `example_analysis_v2.ipynb` to see how to programmatically query the production API.
 
 ---
 © 2026 AI4H2. A non-profit initiative for a more equitable healthcare future.
