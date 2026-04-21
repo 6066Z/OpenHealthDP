@@ -98,7 +98,7 @@ const handleQuery = async (req: any, res: any, table: string) => {
     params.zip = zip;
   }
 
-  query += ` ORDER BY total_cost ASC LIMIT 500`;
+  query += ` ORDER BY total_cost ASC LIMIT 1000`;
 
   try {
     const [rows] = await bigquery.query({ 
