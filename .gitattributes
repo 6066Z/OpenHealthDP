@@ -1,4 +1,4 @@
 # *.ipynb filter=nbstripout
-example_analysis.ipynb -filter
-example_analysis_v2.ipynb -filter
-mri_professional_analysis_v2.4.1.ipynb -filter
+example_analysis/example_analysis.ipynb -filter
+example_analysis/example_analysis_outpatient.ipynb -filter
+example_analysis/example_analysis_inpatient.ipynb -filter
