@@ -2,7 +2,7 @@
 
 OpenHealth is a public API service providing cleaned, structured access to healthcare price transparency data. It is a core product of **AI4H2**, designed to bridge the gap between complex raw government datasets and researchers, educators, and patients.
 
-## 🚀 NEW: v2.4.1 "Year-Aware Enriched Explorer"
+## 🚀 NEW: v2.4.1 "Year-Aware Enriched Database"
 
 We have upgraded the API to support logically separated clinical environments (Inpatient vs. Outpatient), extended limits for regional datasets, and advanced data-science protocols bridging the 2018–2023 structural billing shifts.
 
@@ -22,7 +22,7 @@ We build open, ethical AI solutions that:
 - Deepen patient understanding of their own health.
 - Remove the barriers that keep millions from accessing the services they need.
 
-To empower non-technical users, we have also built **[OpenHealthExplorer](https://openhealth-explorer-815397559759.us-central1.run.app/)**, a standalone web application based on this database that allows anyone to conveniently explore healthcare prices in their neighborhood.
+To empower non-technical users, we have also built **[OpenHealthExplorer](https://openhealth-explorer-815397559759.us-central1.run.app/)**, a web application based on this database that allows anyone to conveniently explore healthcare prices in their neighborhood.
 
 ---
 
