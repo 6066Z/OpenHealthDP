@@ -22,6 +22,8 @@ We build open, ethical AI solutions that:
 - Deepen patient understanding of their own health.
 - Remove the barriers that keep millions from accessing the services they need.
 
+To empower non-technical users, we have also built **[OpenHealthExplorer](https://openhealth-explorer-815397559759.us-central1.run.app/)**, a standalone web application based on this database that allows anyone to conveniently explore healthcare prices in their neighborhood.
+
 ---
 
 ## 🏛 Non-Profit & Usage Restrictions
