@@ -2,14 +2,14 @@
 
 OpenHealth is a public API service providing cleaned, structured access to healthcare price transparency data. It is a core product of **AI4H2**, designed to bridge the gap between complex raw government datasets and researchers, educators, and patients.
 
-## 🚀 NEW: v2.3.0 "Total Coverage" Release
+## 🚀 NEW: v2.4.1 "Year-Aware Enriched Explorer"
 
-We have upgraded the API to support logically separated clinical environments and a unified pricing model.
+We have upgraded the API to support logically separated clinical environments (Inpatient vs. Outpatient), extended limits for regional datasets, and advanced data-science protocols bridging the 2018–2023 structural billing shifts.
 
 ### Live Production Endpoints
-*   **Health Check**: `https://openhealth-dp-815397559759.us-east1.run.app/health`
-*   **v2 Outpatient Explorer**: `https://openhealth-dp-815397559759.us-east1.run.app/api/v2/explorer/outpatient`
-*   **v2 Inpatient Explorer**: `https://openhealth-dp-815397559759.us-east1.run.app/api/v2/explorer/inpatient`
+*   **Base URL**: `https://openhealth-dp-rtzq3cfula-ue.a.run.app`
+*   **v2 Outpatient Explorer**: `/api/v2/explorer/outpatient`
+*   **v2 Inpatient Explorer**: `/api/v2/explorer/inpatient`
 
 ---
 
@@ -33,28 +33,39 @@ By using this API or the associated datasets, you agree that the information wil
 
 ---
 
-## 🚀 Project Scope: OpenHealthDP v2.3.0
+## 🚀 Project Scope: OpenHealthDP v2.4.1
 
 This project provides a cleaned and standardized API for transparency data sourced directly from **official CMS (Centers for Medicare & Medicaid Services) public records.**
 
 ### Current Coverage:
-- **Geography:** Massachusetts (MA) + Multi-state support via `?state=XX`.
+- **Geography:** Massachusetts (MA) with zip-level granularity.
 - **Data Range:** 2018 – 2023.
-- **Cost Metric:** Unified `total_cost` (clinical aggregate).
+- **Cost Metrics:** `total_cost` (Medicare Allowed / Market Floor) and `total_charge` (Self-Pay / Market Ceiling).
 - **Procedures Covered (Clinical Bundles):**
-  - MRI_BRAIN_NO_CONTRAST
-  - COLONOSCOPY
-  - SEPSIS_ADMISSION
-  - JOINT_REPLACEMENT
-  - PNEUMONIA_ADMISSION
+  - `MRI_BRAIN_NO_CONTRAST` (Outpatient)
+  - `COLONOSCOPY_DIAGNOSTIC` (Outpatient)
+  - `SEPSIS_ADMISSION` (Inpatient)
+  - `KNEE_HIP_REPLACEMENT` (Inpatient)
+
+---
+
+## 👨‍🔬 Professional Clinical Data Science Suites
+
+We provide fully validated, Jupyter Notebook suites demonstrating our advanced data science protocols:
+- **`example_analysis/example_analysis_outpatient.ipynb`**: Analyzes MRI and Colonoscopy trends, applying "Global Bill Rescue" and "Zip-Level Normalization" to bridge the 2021 NPI churn.
+- **`example_analysis/example_analysis_inpatient.ipynb`**: Analyzes Sepsis and Joint Replacement DRG bundles, correlating CMS Star Ratings with institutional overhead variance.
+
+### Methodological Protocols Applied:
+1. **Year-Aware Volume**: Sequentially capturing full volumes across years to prevent modern-data displacement.
+2. **Clinical Verification**: Distinct logic for DRG bundles, Diagnostic Colonoscopies, and legacy MRI Global Bills to ensure apples-to-apples comparison.
+3. **Identity-Agnostic Truth**: Separating valid pricing from identity metadata to maintain historical accuracy.
 
 ---
 
 ## 🛠 Project Structure
 
-- **`/src`**: Node.js/TypeScript backend (Hardened for Production).
-- **`example_analysis_v2.ipynb`**: Updated Jupyter Notebook for v2.3.0 analysis.
-- **`example_analysis_v2.md`**: Markdown mirror of the analysis for quick viewing.
+- **`/src`**: Node.js/TypeScript backend (Hardened for Production with constant-time HMAC verification).
+- **`/example_analysis`**: High-fidelity Data Science Jupyter Notebooks.
 - **`cloudbuild.yaml` / `Dockerfile`**: Production CI/CD infrastructure for GCP Cloud Run.
 
 ---
@@ -72,9 +83,6 @@ cp .env.example .env  # Add your GCP_PROJECT_ID and GCP credentials
 npm run dev
 ```
 The server runs on `http://localhost:3001`.
-
-### 3. Explore the Data
-Open `example_analysis_v2.ipynb` to see how to programmatically query the production API.
 
 ---
 © 2026 AI4H2. A non-profit initiative for a more equitable healthcare future.
